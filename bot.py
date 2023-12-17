@@ -239,7 +239,7 @@ def error_handler(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
-    updater = Updater("6662143941:AAEtS3_kKGiJ5fOdxojNgoXEEIEI8en9RLY")
+    updater = Updater("6662143941:AAFzXOvVor6vXZRfH6F7CQ1o8w7Bo9B6lQM")
 
     dp = updater.dispatcher
 
