@@ -3,20 +3,43 @@ import random
 import time
 import requests
 from telegram import Update
+from telegram.ext import CommandHandler, Filters
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 api_key = 'TVIUM91NNKRRK4797SR65NCUSPS3Q23I8U'
 wallet_address = '0x742d3774cBC0Cbd897ddFDA414EA4591c70E784E'
-MAX_ENTRIES = 10
-NUMBER_RANGE = 10
+MAX_ENTRIES = 2
+GROUP_CHAT_ID = -4000928275
+NUMBER_RANGE = 2
 lottery_entries = []
 entered_users = set()
+admin_user_ids = [1814691336, 6171169457]
+
 
 def generate_target_amount():
     random_xyz = random.randint(100, 999)
-    return round(0.020 + random_xyz / 1000000, 7)
+    return round(0.0050 + random_xyz / 10000000, 7)
+
+# Function to stop the current lottery
+def stop_lottery(update, context):
+    # Add logic to stop the current lottery (clear entries, reset variables, etc.)
+    lottery_entries.clear()
+    entered_users.clear()
+    context.bot.send_message(update.message.chat_id, "The current lottery has been stopped.")
+
+# Function to reset user statistics
+def reset_statistics(update, context):
+    # Add logic to reset user statistics (e.g., number of lotteries entered, total winnings, etc.)
+    context.bot.send_message(update.message.chat_id, "User statistics have been reset.")
+
+# Function to display a list of participants
+def participant_list(update, context):
+    participants = [f"@{context.bot.get_chat(user_id).username}" for user_id, _, _ in lottery_entries]
+    participants_list = "\n".join(participants)
+    context.bot.send_message(update.message.chat_id, f"List of participants:\n{participants_list}")
+    
 
 
 def check_transactions(update: Update, context: CallbackContext):
@@ -40,7 +63,7 @@ def check_transactions(update: Update, context: CallbackContext):
             recent_transactions = [
                 tx for tx in data['result']
                 if float(tx['value']) / 10**18 == target_amount and
-                (int(time.time()) - int(tx['timeStamp']) <= 600)
+                (int(time.time()) - int(tx['timeStamp']) <= 300)
             ]
 
             if recent_transactions:
@@ -74,8 +97,14 @@ def entry(update: Update, context: CallbackContext) -> None:
     # Explicitly call check_transactions to handle payment status
     check_transactions(update, context)
 
+    if user_id not in context.user_data:
+        context.user_data[user_id] = {'paid': False}
+
     if context.user_data[user_id]['paid']:
-        print(entered_users)
+        if 'address' not in context.user_data[user_id]:
+            update.message.reply_text("Please set your BNB wallet address using the /setaddress command before entering the lottery.")
+            return
+
         if user_id not in entered_users and len(lottery_entries) < MAX_ENTRIES:
             # Display a waiting message
             context.bot.send_message(chat_id, "⌛ Please wait, our system will randomly assign you a number...")
@@ -86,7 +115,14 @@ def entry(update: Update, context: CallbackContext) -> None:
             assigned_number = assign_unique_number()
             lottery_entries.append((user_id, chat_id, assigned_number))
             entered_users.add(user_id)  # Add the user to the set of entered users
+
+            # Send an entry message to the group chat
+            entry_message = f"@{context.bot.get_chat(user_id).username} paid {context.user_data['target_amount']} BNB with wallet address {context.user_data[user_id]['address']} has entered the lottery."
+            context.bot.send_message(GROUP_CHAT_ID, entry_message)
+
             update.message.reply_text(f"You've been assigned the number <b>{assigned_number}</b>. Good luck 🤞. The results will be announced soon ⏰", parse_mode='HTML')
+
+            # Reset the paid status for all participants
 
             # Check if the maximum number of entries is reached
             if len(lottery_entries) == MAX_ENTRIES:
@@ -102,6 +138,8 @@ def entry(update: Update, context: CallbackContext) -> None:
         update.message.reply_text("Please make the payment first to enter the lottery. Type /start to get payment details.")
 
 
+
+
 def assign_unique_number() -> int:
     assigned_number = random.randint(1, NUMBER_RANGE)
     while any(number == assigned_number for (_, _, number) in lottery_entries):
@@ -110,24 +148,29 @@ def assign_unique_number() -> int:
 
 
 def send_winner_messages(context):
-    #shuffles the lottery entries
+  try:  
     print("Before shuffling:", lottery_entries)
-    random.shuffle(lottery_entries)
-    print("After shuffling:", lottery_entries)
-    print("First entry:", lottery_entries[0])
     if lottery_entries:
+          # Convert to list to avoid modifying the original set
+        #random.shuffle(shuffled_entries)
+        #print("After shuffling:", shuffled_entries)
+         
+      
         '''
         winner_user_id, winner_chat_id, winner_number = random.choice(
             [(u_id, c_id, num) for u_id, c_id, num in lottery_entries if context.user_data.get(u_id, {}).get('paid', False)]
         )
         '''
-        winner_user_id, winner_chat_id, winner_number = lottery_entries[0]
+        #winner_user_id, winner_chat_id, winner_number = lottery_entries[0]
+        #winner_user_id, winner_chat_id, winner_number = random.choice(lottery_entries)
+        winner_user_id, winner_chat_id, winner_number = random.choice(lottery_entries)
         
         # Check if the user has paid
-        if context.user_data.get(winner_user_id, {}).get('paid', False):
+        print(f"Winner: User ID: {winner_user_id}, Chat ID: {winner_chat_id}, Number: {winner_number}")
+        if context.user_data.get(winner_user_id, {}).get('paid', True):
             
 
-            
+            winner_user_id_str = str(winner_user_id)
             winner_wallet_address = context.user_data.get(winner_user_id, {}).get('address', 'N/A')
 
             winner_message_individual = (
@@ -141,7 +184,7 @@ def send_winner_messages(context):
                 user_wallet_address = context.user_data.get(user_id, {}).get('address', 'N/A')
                 winner_message_group += f"@{username} - Number: <b>{assigned_number}</b> - Wallet: <code>{user_wallet_address}</code>\n"
 
-            time.sleep(random.uniform(5, 6))
+            time.sleep(random.uniform(180, 220))
 
             for _, chat_id, _ in lottery_entries:
                 context.bot.send_message(chat_id, winner_message_individual, parse_mode='HTML')
@@ -152,9 +195,8 @@ def send_winner_messages(context):
 
             lottery_entries.clear()
             entered_users.clear()
-            # Reset the paid status for all participants
-            for user_id in entered_users:
-                context.user_data[user_id]['paid'] = False
+  except Exception as e:
+        logging.error(f"An error occurred in send_winner_messages: {e}")          
 
 
 def start(update: Update, context: CallbackContext) -> None:
@@ -197,13 +239,17 @@ def error_handler(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
-    updater = Updater("6662143941:AAGdGZlzEcQUbkT3Y_PUtpNPUoteAFkTI84")
+    updater = Updater("6662143941:AAEtS3_kKGiJ5fOdxojNgoXEEIEI8en9RLY")
 
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("entry", entry))
     dp.add_handler(CommandHandler("setaddress", set_address))
+    # Register the admin commands with the dispatcher
+    dp.add_handler(CommandHandler("stoplottery", stop_lottery, filters=Filters.user(admin_user_ids)))
+    dp.add_handler(CommandHandler("resetstatistics", reset_statistics, filters=Filters.user(admin_user_ids)))
+    dp.add_handler(CommandHandler("participants", participant_list, filters=Filters.user(admin_user_ids)))
 
     dp.add_error_handler(error_handler)
 
