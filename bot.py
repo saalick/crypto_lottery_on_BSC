@@ -20,7 +20,7 @@ admin_user_ids = [1814691336, 6171169457]
 
 def generate_target_amount():
     random_xyz = random.randint(100, 999)
-    return round(0.0050 + random_xyz / 10000000, 7)
+    return round(0.050 + random_xyz / 1000000, 7)
 
 # Function to stop the current lottery
 def stop_lottery(update, context):
