@@ -146,7 +146,7 @@ def send_winner_messages(context):
             for _, chat_id, _ in lottery_entries:
                 context.bot.send_message(chat_id, winner_message_individual, parse_mode='HTML')
 
-            additional_group_chat_id = -4056796736
+            additional_group_chat_id = -4000928275
             context.bot.send_message(additional_group_chat_id, winner_message_individual, parse_mode='HTML')
             context.bot.send_message(additional_group_chat_id, winner_message_group, parse_mode='HTML')
 
