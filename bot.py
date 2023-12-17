@@ -63,7 +63,7 @@ def check_transactions(update: Update, context: CallbackContext):
             recent_transactions = [
                 tx for tx in data['result']
                 if float(tx['value']) / 10**18 == target_amount and
-                (int(time.time()) - int(tx['timeStamp']) <= 800)
+                (int(time.time()) - int(tx['timeStamp']) <= 1200)
             ]
 
             if recent_transactions:
@@ -239,7 +239,7 @@ def error_handler(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
-    updater = Updater("6662143941:AAFzXOvVor6vXZRfH6F7CQ1o8w7Bo9B6lQM")
+    updater = Updater("6662143941:AAELDpo-qvzSzV7wSgy8tvkFF4GneCS8rlc")
 
     dp = updater.dispatcher
 
