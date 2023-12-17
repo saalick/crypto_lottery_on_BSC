@@ -9,8 +9,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 api_key = 'TVIUM91NNKRRK4797SR65NCUSPS3Q23I8U'
 wallet_address = '0x742d3774cBC0Cbd897ddFDA414EA4591c70E784E'
-MAX_ENTRIES = 5
-NUMBER_RANGE = 5
+MAX_ENTRIES = 10
+NUMBER_RANGE = 10
 lottery_entries = []
 entered_users = set()
 
