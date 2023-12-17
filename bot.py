@@ -63,7 +63,7 @@ def check_transactions(update: Update, context: CallbackContext):
             recent_transactions = [
                 tx for tx in data['result']
                 if float(tx['value']) / 10**18 == target_amount and
-                (int(time.time()) - int(tx['timeStamp']) <= 300)
+                (int(time.time()) - int(tx['timeStamp']) <= 800)
             ]
 
             if recent_transactions:
