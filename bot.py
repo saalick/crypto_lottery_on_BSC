@@ -10,9 +10,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 api_key = 'TVIUM91NNKRRK4797SR65NCUSPS3Q23I8U'
 wallet_address = '0x742d3774cBC0Cbd897ddFDA414EA4591c70E784E'
-MAX_ENTRIES = 2
+MAX_ENTRIES = 5
 GROUP_CHAT_ID = -4000928275
-NUMBER_RANGE = 2
+NUMBER_RANGE = 5
 lottery_entries = []
 entered_users = set()
 admin_user_ids = [1814691336, 6171169457]
@@ -239,7 +239,7 @@ def error_handler(update: Update, context: CallbackContext) -> None:
 
 
 def main() -> None:
-    updater = Updater("6662143941:AAELDpo-qvzSzV7wSgy8tvkFF4GneCS8rlc")
+    updater = Updater("6662143941:AAFp_fOBvhZQbl8CD3rG-nG3FrSurUJIFgc")
 
     dp = updater.dispatcher
 
